@@ -1,0 +1,47 @@
+{
+    "config": {
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "model_type": "LLM Type"
+                }
+            },
+            "tongyi": {
+                "data": {
+                    "api_key": "API Key",
+                    "chat_model": "Chat Model Name"
+                }
+            },
+            "common_config": {
+                "data": {
+                    "name": "Name"
+                }
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "system_prompt": "System Prompt Template",
+                    "human_prompt": "Human Prompt Template",
+                    "top_p": "Top P",
+                    "langchain_max_iterations": "The maximum number of steps to take before ending the execution loop",
+                    "langchain_memory_window_size": "Number of messages to store in buffer"
+                }
+            }
+        }
+    },
+    "selector": {
+        "llm_model_class": {
+            "options": {
+                "Tongyi": "Tongyi"
+            }
+        }
+    }
+}

@@ -6,12 +6,23 @@ This component integrates the power of [LangChain](https://github.com/langchain-
 With this component, users can engage in natural language conversations to control smart devices, create automations, and more.
 
 ## Features
-- __Conversational Control__: 
+- **Conversational Control**: 
 
   Use natural language to interact with your smart home. Simply chat with your Home Assistant using voice or text commands to perform actions like turning on lights, adjusting thermostat, or creating automation rules.
-- __Contextual Understanding__: 
+- **Contextual Understanding**: 
 
   Utilizing LangChain's memory capability enables this component to understand the context of the conversation and complete some follow-up conversations.
-- __Multi LLM Support__
+- **Multi LLM Support**
 
   Based on LangChain's ability, this component will be able to support a variety of large models in the future, including locally deployed models, which will avoid users' concerns about privacy.
+
+## Currently Supported LLM
+- [**Tongyi**](https://tongyi.aliyun.com/)
+
+## Currently Supported Abilities In Homeassistant
+- call a service, including triggering a scene
+- add an automation
+- add a script
+- add a scene
+
+  ...

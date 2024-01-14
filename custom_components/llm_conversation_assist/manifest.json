@@ -1,0 +1,24 @@
+{
+  "domain": "llm_conversation_assist",
+  "name": "llm_conversation_assist",
+  "codeowners": [
+    "@hzz765"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "conversation",
+    "scene",
+    "automation",
+    "script"
+  ],
+  "documentation": "https://github.com/hzz765/hass_llm_assist",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/hzz765/hass_llm_assist/issues",
+  "requirements": [
+    "langchain>=0.1.0",
+    "dashscope"
+  ],
+  "loggers": ["langchain"],
+  "version": "0.0.1"
+}
