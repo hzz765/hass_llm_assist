@@ -1,4 +1,7 @@
 # LLM Assist For Homeassistant
+>MVP (minimum viable product) version, there are still many things that can be optimized and will be gradually improved.
+>
+>If you have any ideas or suggestions, you can raise an issue to tell me.
 
 English | [简体中文](README_zh.md)
 

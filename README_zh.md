@@ -1,4 +1,7 @@
 # LLM Assist For Homeassistant
+>MVP (最小可行性产品) 版本, 还有很多可优化的，将逐步改进。
+>
+>如果有任何想法或建议，可以提issue告诉我
 
 [English](README.md) | 简体中文
 
