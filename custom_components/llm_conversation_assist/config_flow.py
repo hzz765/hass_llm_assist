@@ -21,27 +21,13 @@ from homeassistant.helpers.selector import (
 )
 
 
-from .const import (
-    DEFAULT_NAME,
-    CONF_MODEL_TYPE,
-    MODEL_TONGYI,
-    DEFAULT_TONGYI_CHAT_MODEL,
-    CONF_CHAT_MODEL,
-    CONF_SYSTEM_PROMPT,
-    CONF_HUMAN_PROMPT,
-    CONF_TOP_P,
-    DEFAULT_SYSTEM_PROMPT,
-    DEFAULT_HUMAN_PROMPT,
-    DEFAULT_TONGYI_TOP_P,
-    DOMAIN,
-    CONF_LANGCHAIN_MAX_ITERATIONS,
-    DEFAULT_LANGCHAIN_MAX_ITERATIONS,
-    CONF_LANGCHAIN_MEMORY_WINDOW_SIZE,
-    DEFAULT_LANGCHAIN_MEMORY_WINDOW_SIZE
+from .const import *
+
+
+from .langchain_tools.llm_models import (
+    validate_tongyi_auth,
+    validate_qianfan_auth
 )
-
-
-from .langchain_tools.llm_models import validate_tongyi_auth
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,7 +35,7 @@ STEP_MODEL_SELECTION_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_MODEL_TYPE): SelectSelector(
             SelectSelectorConfig(
-                options=[MODEL_TONGYI],
+                options=[MODEL_TONGYI, MODEL_QIANFAN],
                 mode=SelectSelectorMode.DROPDOWN,
                 multiple=False,
                 translation_key="llm_model_class",
@@ -62,6 +48,14 @@ STEP_TONGYI_MODEL_CONFIG_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_API_KEY): str,
         vol.Optional(CONF_CHAT_MODEL, default=DEFAULT_TONGYI_CHAT_MODEL): str,
+    }
+)
+
+STEP_QIANFAN_MODEL_CONFIG_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_API_KEY): str,
+        vol.Required(CONF_SECRET_KEY): str,
+        vol.Optional(CONF_CHAT_MODEL, default=DEFAULT_QIANFAN_CHAT_MODEL): str,
     }
 )
 
@@ -86,6 +80,13 @@ DEFAULT_TONGYI_OPTIONS = types.MappingProxyType(
     }
 )
 
+DEFAULT_QIANFAN_OPTIONS = types.MappingProxyType(
+    {
+        CONF_TOP_P: DEFAULT_QIANFAN_TOP_P,
+        CONF_TEMPERATURE: DEFAULT_QIANFAN_TEMPERATURE
+    }
+)
+
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for LLM Conversation Assist."""
@@ -107,6 +108,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input[CONF_MODEL_TYPE] == MODEL_TONGYI:
             self.user_input_data[CONF_MODEL_TYPE] = MODEL_TONGYI
             return await self.async_step_tongyi()
+        if user_input[CONF_MODEL_TYPE] == MODEL_QIANFAN:
+            self.user_input_data[CONF_MODEL_TYPE] = MODEL_QIANFAN
+            return await self.async_step_qianfan()
 
         return self.async_show_form(
             step_id="user", data_schema=STEP_MODEL_SELECTION_SCHEMA, errors={CONF_MODEL_TYPE: "unknown"}
@@ -123,7 +127,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         try:
-            await self.validate_tongyi_conf(user_input)
+            await self._validate_tongyi_conf(user_input)
         except Exception:  # pylint: disable=broad-except
             errors["base"] = "auth fail"
         else:
@@ -132,6 +136,28 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return await self.async_step_common_config()
 
         return self.async_show_form(step_id="tongyi", data_schema=STEP_TONGYI_MODEL_CONFIG_SCHEMA, errors=errors)
+
+    async def async_step_qianfan(
+            self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        if user_input is None:
+            return self.async_show_form(
+                step_id="qianfan", data_schema=STEP_QIANFAN_MODEL_CONFIG_SCHEMA
+            )
+
+        errors = {}
+
+        try:
+            await self._validate_qianfan_auth(user_input)
+        except Exception:  # pylint: disable=broad-except
+            errors["base"] = "auth fail"
+        else:
+            self.user_input_data[CONF_CHAT_MODEL] = user_input[CONF_CHAT_MODEL]
+            self.user_input_data[CONF_API_KEY] = user_input[CONF_API_KEY]
+            self.user_input_data[CONF_SECRET_KEY] = user_input[CONF_SECRET_KEY]
+            return await self.async_step_common_config()
+
+        return self.async_show_form(step_id="tongyi", data_schema=STEP_QIANFAN_MODEL_CONFIG_SCHEMA, errors=errors)
 
     async def async_step_common_config(
             self, user_input: dict[str, Any] | None = None
@@ -152,10 +178,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow."""
         return OptionsFlow(config_entry)
 
-    async def validate_tongyi_conf(self, data: dict[str, Any]):
+    async def _validate_tongyi_conf(self, data: dict[str, Any]):
         api_key = data[CONF_API_KEY]
         model_name = data[CONF_CHAT_MODEL]
         return await validate_tongyi_auth(api_key, model_name)
+
+    async def _validate_qianfan_auth(self, data: dict[str, Any]):
+        ak = data[CONF_API_KEY]
+        sk = data[CONF_SECRET_KEY]
+        model_name = data[CONF_CHAT_MODEL]
+        return await validate_qianfan_auth(ak, sk, model_name)
 
 
 class OptionsFlow(config_entries.OptionsFlow):
@@ -211,6 +243,9 @@ class OptionsFlow(config_entries.OptionsFlow):
     def llm_config_option_schema(self, options: MappingProxyType[str, Any]) -> dict:
         if self.config_entry.data.get(CONF_MODEL_TYPE) == MODEL_TONGYI:
             return self.tongyi_config_option_schema(options)
+        if self.config_entry.data.get(CONF_MODEL_TYPE) == MODEL_QIANFAN:
+            return self.qianfan_config_option_schema(options)
+        return {}
 
     def tongyi_config_option_schema(self, options: MappingProxyType[str, Any]) -> dict:
         if not options:
@@ -221,5 +256,25 @@ class OptionsFlow(config_entries.OptionsFlow):
                 CONF_TOP_P,
                 description={"suggested_value": options[CONF_TOP_P]},
                 default=DEFAULT_TONGYI_TOP_P,
+            ): NumberSelector(NumberSelectorConfig(min=0, max=1, step=0.05)),
+        }
+
+    def qianfan_config_option_schema(self, options: MappingProxyType[str, Any]) -> dict:
+        if not options:
+            options = DEFAULT_QIANFAN_OPTIONS
+
+        if self.config_entry.data.get(CONF_CHAT_MODEL) not in ("ERNIE-Bot", "ERNIE-Bot-turbo"):
+            return {}
+
+        return {
+            vol.Optional(
+                CONF_TOP_P,
+                description={"suggested_value": options[CONF_TOP_P]},
+                default=DEFAULT_QIANFAN_TOP_P,
+            ): NumberSelector(NumberSelectorConfig(min=0, max=1, step=0.05)),
+            vol.Optional(
+                CONF_TOP_P,
+                description={"suggested_value": options[CONF_TEMPERATURE]},
+                default=DEFAULT_QIANFAN_TEMPERATURE,
             ): NumberSelector(NumberSelectorConfig(min=0, max=1, step=0.05)),
         }

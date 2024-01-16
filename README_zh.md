@@ -21,6 +21,7 @@
 
 ## 当前支持的大模型
 - [**通义大模型**](https://tongyi.aliyun.com/)
+- [**百度千帆（文心一言）**](https://cloud.baidu.com/product/wenxinworkshop)
 
 ## 当前支持的Homeassistant能力
 - 控制智能家居，包括触发场景

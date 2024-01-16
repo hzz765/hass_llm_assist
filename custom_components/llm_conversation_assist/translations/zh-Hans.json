@@ -17,6 +17,13 @@
                     "chat_model": "\u6a21\u578b\u7c7b\u522b"
                 }
             },
+            "qianfan": {
+                "data": {
+                    "api_key": "API \u5bc6\u94a5",
+                    "chat_model": "\u6a21\u578b\u7c7b\u522b",
+                    "secret_key": "Secret 密钥"
+                }
+            },
             "common_config": {
                 "data": {
                     "name": "\u914d\u7f6e\u540d\u79f0"
@@ -31,6 +38,7 @@
                     "system_prompt": "SYSTEM \u63d0\u793a\u8bcd\u6a21\u677f",
                     "human_prompt": "HUMAN \u63d0\u793a\u8bcd\u6a21\u677f",
                     "top_p": "\u8bdd\u9898\u65b0\u9c9c\u5ea6\uff0c\u503c\u8d8a\u5927\u8d8a\u6709\u53ef\u80fd\u6269\u5c55\u5230\u65b0\u8bdd\u9898\u3002",
+                    "temperature": "\u968f\u673a\u6027\uff0c\u503c\u8d8a\u5927\u56de\u590d\u8d8a\u968f\u673a\u3002",
                     "langchain_max_iterations": "Langchain \u5355\u6b21\u53ef\u6267\u884c\u7684\u6700\u5927\u6b65\u6570",
                     "langchain_memory_window_size": "\u8bb0\u5fc6\u7f13\u51b2\u533a\u7684\u6d88\u606f\u6761\u6570"
                 }
@@ -40,7 +48,8 @@
     "selector": {
         "llm_model_class": {
             "options": {
-                "Tongyi": "\u901a\u4e49"
+                "Tongyi": "\u901a\u4e49",
+                "Qianfan": "百度千帆（文心）"
             }
         }
     }

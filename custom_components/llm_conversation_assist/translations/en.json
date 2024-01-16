@@ -17,6 +17,13 @@
                     "chat_model": "Chat Model Name"
                 }
             },
+            "qianfan": {
+                "data": {
+                    "api_key": "API Key",
+                    "chat_model": "Chat Model Name",
+                    "secret_key": "Secret Key"
+                }
+            },
             "common_config": {
                 "data": {
                     "name": "Name"
@@ -31,6 +38,7 @@
                     "system_prompt": "System Prompt Template",
                     "human_prompt": "Human Prompt Template",
                     "top_p": "Top P",
+                    "temperature": "Temperature",
                     "langchain_max_iterations": "The maximum number of steps to take before ending the execution loop",
                     "langchain_memory_window_size": "Number of messages to store in buffer"
                 }
@@ -40,7 +48,8 @@
     "selector": {
         "llm_model_class": {
             "options": {
-                "Tongyi": "Tongyi"
+                "Tongyi": "Tongyi",
+                "Qianfan":"Qianfan"
             }
         }
     }

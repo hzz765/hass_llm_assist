@@ -21,6 +21,7 @@ With this component, users can engage in natural language conversations to contr
 
 ## Currently Supported LLM
 - [**Tongyi**](https://tongyi.aliyun.com/)
+- [**Qianfan**](https://cloud.baidu.com/product/wenxinworkshop)
 
 ## Currently Supported Abilities In Homeassistant
 - call a service, including triggering a scene

@@ -24,23 +24,7 @@ from homeassistant.exceptions import (
     HomeAssistantError,
 )
 
-from .const import (
-    CONF_MODEL_TYPE,
-    MODEL_TONGYI,
-    DEFAULT_TONGYI_CHAT_MODEL,
-    CONF_CHAT_MODEL,
-    CONF_SYSTEM_PROMPT,
-    CONF_HUMAN_PROMPT,
-    CONF_TOP_P,
-    DEFAULT_SYSTEM_PROMPT,
-    DEFAULT_HUMAN_PROMPT,
-    DEFAULT_TONGYI_TOP_P,
-    DOMAIN,
-    CONF_LANGCHAIN_MAX_ITERATIONS,
-    DEFAULT_LANGCHAIN_MAX_ITERATIONS,
-    CONF_LANGCHAIN_MEMORY_WINDOW_SIZE,
-    DEFAULT_LANGCHAIN_MEMORY_WINDOW_SIZE
-)
+from .const import *
 
 from .langchain_tools.ha_tools import (
     HAServiceCallToolFactory
@@ -120,6 +104,8 @@ class LLMConversationAssistAgent(conversation.AbstractConversationAgent):
         model_type = self.entry.data.get(CONF_MODEL_TYPE)
         if model_type == MODEL_TONGYI:
             return self._get_tongyi_model()
+        if model_type == MODEL_QIANFAN:
+            return self._get_qianfan_model()
 
     def _get_tongyi_model(self):
         from langchain_community.llms import Tongyi
@@ -127,6 +113,15 @@ class LLMConversationAssistAgent(conversation.AbstractConversationAgent):
         model_name = self.entry.data.get(CONF_CHAT_MODEL, DEFAULT_TONGYI_CHAT_MODEL)
         top_p = self.entry.options.get(CONF_TOP_P, DEFAULT_TONGYI_TOP_P)
         return Tongyi(model_name=model_name, dashscope_api_key=api_key, top_p=top_p)
+
+    def _get_qianfan_model(self):
+        from langchain_community.llms import QianfanLLMEndpoint
+        ak = self.entry.data.get(CONF_API_KEY)
+        sk = self.entry.data.get(CONF_SECRET_KEY)
+        model_name = self.entry.data.get(CONF_CHAT_MODEL, DEFAULT_QIANFAN_CHAT_MODEL)
+        top_p = self.entry.options.get(CONF_TOP_P, DEFAULT_QIANFAN_TOP_P)
+        temperature = self.entry.options.get(CONF_TEMPERATURE, DEFAULT_QIANFAN_TEMPERATURE)
+        return QianfanLLMEndpoint(qianfan_ak=ak, qianfan_sk=sk, model=model_name, top_p=top_p, temperature=temperature)
 
     @property
     def supported_languages(self) -> list[str] | Literal["*"]:
