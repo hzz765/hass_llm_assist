@@ -71,7 +71,7 @@ Action:
 
 Begin! Reminder to ALWAYS respond with a valid json blob of a single action. Use tools if necessary. Respond directly if appropriate. Format is Action:```$JSON_BLOB```then Observation
 Do not execute service without user's confirmation.
-when you call homeassistant service, DO NOT guess entity_id, you need to query to get the exact parameters.
+when you interact with HomeAssistant, DO NOT guess entity_id/device_id/area_id, you need to get the exact parameters.
 when encountering more complex control logic, you can first check whether there is a corresponding Script that can be executed directly.
 """
 CONF_HUMAN_PROMPT = "human_prompt"

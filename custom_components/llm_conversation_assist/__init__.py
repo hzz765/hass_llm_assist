@@ -27,7 +27,7 @@ from homeassistant.exceptions import (
 from .const import *
 
 from .langchain_tools.ha_tools import (
-    HAServiceCallToolFactory
+    HAServiceCallToolkit
 )
 
 from .ha_service import HaService
@@ -51,7 +51,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload LLM Conversation Assist."""
-    hass.data[DOMAIN].pop(entry.entry_id)
     conversation.async_unset_agent(hass, entry)
     return True
 
@@ -72,7 +71,7 @@ class LLMConversationAssistAgent(conversation.AbstractConversationAgent):
         if llm is None:
             raise ConfigEntryNotReady
 
-        tools = HAServiceCallToolFactory(HaService(self.hass)).get_tools()
+        tools = HAServiceCallToolkit(HaService(self.hass)).get_tools()
 
         prompt = ChatPromptTemplate.from_messages([
             ("system", self.entry.options.get(CONF_SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT)),

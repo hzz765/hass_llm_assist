@@ -30,3 +30,25 @@ With this component, users can engage in natural language conversations to contr
 - add a scene
 
   ...
+
+## Installation
+1. Copy `llm_conversation_assist` folder into `<your config directory>/custom_components`.
+2. Restart Home Assistant to load the component
+
+## Configuration
+1. Open the Home Assistant frontend or mobile app.
+2. Navigate to **Settings** > **Devices&services**.
+3. Select **llm_conversation_assist** in **Integrations** tab.
+4. Click **ADD SERVICE** and follow config flow to complete the setup.
+   - configure necessary settings of the llm model
+   - specify config name `<your agent name>`
+5. Navigate to **Settings** > **Voice Assistants**.
+6. Click **Add assistant**
+   - specify assistant name `<your assistant name>`
+   - choose `<your agent name>` as Conversation agent
+
+## Usage
+1. Open the Home Assistant frontend or mobile app.
+2. Click on the conversation agent icon or open the conversation agent panel.
+3. Select your assistant by switching to  `<your assistant name>`
+4. Now start your conversation

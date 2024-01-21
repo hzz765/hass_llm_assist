@@ -30,3 +30,51 @@
 - 新增场景设定
 
   ...
+
+
+## 安装
+
+1. 将 `llm_conversation_assist` 文件夹复制到 `<你的配置目录>/custom_components` 目录中。
+2. 重新启动 Home Assistant 以加载该组件。
+
+## 配置
+
+1. 打开 Home Assistant 的前端界面或移动应用。
+2. 导航到 **设置** > **设备与服务**。
+3. 在 **集成** 选项卡中选择 **llm_conversation_assist**。
+4. 点击 **添加服务**，然后按照配置流程完成设置。
+   - 设置必要的llm模型信息
+   - 填写配置名称`<你的代理名称>`
+5. 导航到 **设置** > **语音助手**。
+6. 点击 **添加助手**
+   - 填写助手名称`<你的助手名称>`
+   - 选择`<你的代理名称>`作为对话代理
+
+## 使用
+1. 打开 Home Assistant 的前端界面或移动应用。
+2. 点击对话代理图标或打开对话代理面板。
+3. 切换到您的助手，选择`<你的助手名称>`。
+4. 开始对话。
+
+## 效果演示
+> 对话响应速度与大模型处理速度关系很大，以下视频仅作效果演示参考
+- 控制设备
+  
+https://github.com/hzz765/hass_llm_assist/assets/156523164/54340702-6162-45b9-971e-ee8b3d9a7ca0
+
+- 创建场景
+
+https://github.com/hzz765/hass_llm_assist/assets/156523164/b4007440-25b2-43a5-bb89-a94f227b44f5
+
+- 触发场景
+
+https://github.com/hzz765/hass_llm_assist/assets/156523164/bc3d9c45-a957-4b03-9142-2d1c605dc1a2
+  
+- 创建自动化
+
+https://github.com/hzz765/hass_llm_assist/assets/156523164/bd2cc717-cd9e-4a02-84a8-e3e58f1a2718
+
+- 日常对话
+
+https://github.com/hzz765/hass_llm_assist/assets/156523164/a82aac47-ad69-4b7d-85f3-a73e3d7eccf3
+

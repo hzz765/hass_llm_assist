@@ -20,6 +20,5 @@
     "dashscope",
     "qianfan"
   ],
-  "loggers": ["langchain"],
   "version": "0.0.1"
 }

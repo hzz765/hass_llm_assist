@@ -14,7 +14,8 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
-    TemplateSelector,
+    TextSelector,
+    TextSelectorConfig,
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
@@ -222,12 +223,12 @@ class OptionsFlow(config_entries.OptionsFlow):
                 CONF_SYSTEM_PROMPT,
                 description={"suggested_value": options[CONF_SYSTEM_PROMPT]},
                 default=DEFAULT_SYSTEM_PROMPT,
-            ): TemplateSelector(),
+            ): TextSelector(TextSelectorConfig(multiline=True)),
             vol.Optional(
                 CONF_HUMAN_PROMPT,
                 description={"suggested_value": options[CONF_HUMAN_PROMPT]},
                 default=DEFAULT_HUMAN_PROMPT,
-            ): TemplateSelector(),
+            ): TextSelector(TextSelectorConfig(multiline=True)),
             vol.Optional(
                 CONF_LANGCHAIN_MAX_ITERATIONS,
                 description={"suggested_value": options[CONF_LANGCHAIN_MAX_ITERATIONS]},
