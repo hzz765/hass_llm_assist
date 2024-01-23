@@ -274,7 +274,7 @@ class OptionsFlow(config_entries.OptionsFlow):
                 default=DEFAULT_QIANFAN_TOP_P,
             ): NumberSelector(NumberSelectorConfig(min=0, max=1, step=0.05)),
             vol.Optional(
-                CONF_TOP_P,
+                CONF_TEMPERATURE,
                 description={"suggested_value": options[CONF_TEMPERATURE]},
                 default=DEFAULT_QIANFAN_TEMPERATURE,
             ): NumberSelector(NumberSelectorConfig(min=0, max=1, step=0.05)),
