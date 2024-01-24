@@ -96,7 +96,7 @@ logger:
 ### 1. 安装/启动失败
 这很可能是由于无法安装 Python 依赖包导致的。
 
-- 如果要使用的 LLM 不依赖于此 Python 包，可以在 manifest.json 文件中删除相应的包名称。
+- 如果要使用的 LLM 不依赖于此 Python 包，可以在 `manifest.json` 文件中删除相应的包名称。
   - OpenAI -> `langchain-openai`
   - 通义 -> `dashscope`
   - 百度千帆 -> `qianfan`
