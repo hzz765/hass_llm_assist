@@ -20,7 +20,8 @@ With this component, users can engage in natural language conversations to contr
   Based on LangChain's ability, this component will be able to support a variety of large models in the future, including locally deployed models, which will avoid users' concerns about privacy.
 
 ## Currently Supported LLM
-- [**Tongyi**](https://tongyi.aliyun.com/)
+- **OpenAI**
+- [**Tongyi**](https://tongyi.aliyun.com/) (slower response)
 
 ## Currently Supported Abilities In Homeassistant
 - call a service, including triggering a scene

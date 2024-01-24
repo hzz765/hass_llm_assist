@@ -17,7 +17,8 @@
   "issue_tracker": "https://github.com/hzz765/hass_llm_assist/issues",
   "requirements": [
     "langchain>=0.1.0",
-    "dashscope"
+    "dashscope",
+    "langchain-openai>=0.0.3"
   ],
   "version": "0.0.1"
 }

@@ -7,7 +7,8 @@ from typing import Literal
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.agents import (
     AgentExecutor,
-    create_structured_chat_agent
+    create_structured_chat_agent,
+    create_openai_tools_agent
 )
 from langchain.prompts import (
     ChatPromptTemplate,
@@ -18,29 +19,13 @@ from homeassistant.components import conversation
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, MATCH_ALL
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import intent
+from homeassistant.helpers import intent, template
 from homeassistant.exceptions import (
     ConfigEntryNotReady,
     HomeAssistantError,
 )
 
-from .const import (
-    CONF_MODEL_TYPE,
-    MODEL_TONGYI,
-    DEFAULT_TONGYI_CHAT_MODEL,
-    CONF_CHAT_MODEL,
-    CONF_SYSTEM_PROMPT,
-    CONF_HUMAN_PROMPT,
-    CONF_TOP_P,
-    DEFAULT_SYSTEM_PROMPT,
-    DEFAULT_HUMAN_PROMPT,
-    DEFAULT_TONGYI_TOP_P,
-    DOMAIN,
-    CONF_LANGCHAIN_MAX_ITERATIONS,
-    DEFAULT_LANGCHAIN_MAX_ITERATIONS,
-    CONF_LANGCHAIN_MEMORY_WINDOW_SIZE,
-    DEFAULT_LANGCHAIN_MEMORY_WINDOW_SIZE
-)
+from .const import *
 
 from .langchain_tools.ha_tools import (
     HAServiceCallToolkit
@@ -80,38 +65,59 @@ class LLMConversationAssistAgent(conversation.AbstractConversationAgent):
         self.hass = hass
         self.entry = entry
 
-        self.agent_chain = self._get_agent_chain()
+        self.memory = ConversationBufferWindowMemory(
+            return_messages=True,
+            memory_key='chat_history',
+            input_key='input',
+            k=self.entry.options.get(CONF_LANGCHAIN_MEMORY_WINDOW_SIZE, DEFAULT_LANGCHAIN_MEMORY_WINDOW_SIZE)
+        )
+        self.tools = HAServiceCallToolkit(HaService(self.hass)).get_tools()
 
     def _get_agent_chain(self):
         llm = self._get_llm()
         if llm is None:
             raise ConfigEntryNotReady
 
-        tools = HAServiceCallToolkit(HaService(self.hass)).get_tools()
+        raw_system_prompt = self.entry.options.get(CONF_SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT)
+        raw_human_prompt = self.entry.options.get(CONF_HUMAN_PROMPT, DEFAULT_HUMAN_PROMPT)
+        if self.entry.data.get(CONF_MODEL_TYPE) == MODEL_OPENAI:
+            system_prompt = self._async_generate_system_prompt(raw_system_prompt, OPENAI_AGENT_SYSTEM_PROMPT)
+            human_prompt = self._async_generate_human_prompt(raw_human_prompt, OPENAI_AGENT_HUMAN_PROMPT)
+            _LOGGER.debug("Using system prompt: %s", system_prompt)
+            _LOGGER.debug("Using human prompt: %s", human_prompt)
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", system_prompt),
+                MessagesPlaceholder('chat_history'),
+                ("human", human_prompt),
+                MessagesPlaceholder('agent_scratchpad'),
+            ])
+            agent = create_openai_tools_agent(
+                llm=llm,
+                tools=self.tools,
+                prompt=prompt
+            )
+        else:
+            system_prompt = self._async_generate_system_prompt(raw_system_prompt, STRUCTURED_AGENT_SYSTEM_PROMPT)
+            human_prompt = self._async_generate_human_prompt(raw_human_prompt, STRUCTURED_AGENT_HUMAN_PROMPT)
+            _LOGGER.debug("Using system prompt: %s", system_prompt)
+            _LOGGER.debug("Using human prompt: %s", human_prompt)
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", system_prompt),
+                MessagesPlaceholder('chat_history'),
+                ("human", human_prompt)
+            ])
+            agent = create_structured_chat_agent(
+                llm=llm,
+                tools=self.tools,
+                prompt=prompt
+            )
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", self.entry.options.get(CONF_SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT)),
-            MessagesPlaceholder('chat_history'),
-            ("human", self.entry.options.get(CONF_HUMAN_PROMPT, DEFAULT_HUMAN_PROMPT))
-        ])
-        memory = ConversationBufferWindowMemory(
-            return_messages=True,
-            memory_key='chat_history',
-            input_key='input',
-            k=self.entry.options.get(CONF_LANGCHAIN_MEMORY_WINDOW_SIZE, DEFAULT_LANGCHAIN_MEMORY_WINDOW_SIZE)
-        )
-
-        agent = create_structured_chat_agent(
-            llm=llm,
-            tools=tools,
-            prompt=prompt
-        )
         return AgentExecutor(
             agent=agent,
-            tools=tools,
+            tools=self.tools,
             max_iterations=self.entry.options.get(CONF_LANGCHAIN_MAX_ITERATIONS, DEFAULT_LANGCHAIN_MAX_ITERATIONS),
             verbose=True,
-            memory=memory,
+            memory=self.memory,
             handle_parsing_errors=True
         )
 
@@ -119,6 +125,8 @@ class LLMConversationAssistAgent(conversation.AbstractConversationAgent):
         model_type = self.entry.data.get(CONF_MODEL_TYPE)
         if model_type == MODEL_TONGYI:
             return self._get_tongyi_model()
+        if model_type == MODEL_OPENAI:
+            return self._get_openai_model()
 
     def _get_tongyi_model(self):
         from langchain_community.llms import Tongyi
@@ -126,6 +134,41 @@ class LLMConversationAssistAgent(conversation.AbstractConversationAgent):
         model_name = self.entry.data.get(CONF_CHAT_MODEL, DEFAULT_TONGYI_CHAT_MODEL)
         top_p = self.entry.options.get(CONF_TOP_P, DEFAULT_TONGYI_TOP_P)
         return Tongyi(model_name=model_name, dashscope_api_key=api_key, top_p=top_p)
+
+    def _get_openai_model(self):
+        from langchain_openai import ChatOpenAI
+        api_key = self.entry.data.get(CONF_API_KEY)
+        model_name = self.entry.data.get(CONF_CHAT_MODEL, DEFAULT_OPENAI_CHAT_MODEL)
+        base_url = self.entry.data.get(CONF_BASE_URL, DEFAULT_OPENAI_BASE_URL)
+        temperature = self.entry.options.get(CONF_TEMPERATURE, DEFAULT_OPENAI_TEMPERATURE)
+        max_tokens = self.entry.options.get(CONF_MAX_TOKENS, DEFAULT_OPENAI_MAX_TOKENS)
+        return ChatOpenAI(
+            model_name=model_name,
+            openai_api_key=api_key,
+            openai_api_base=base_url,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+
+    def _async_generate_system_prompt(self, raw_prompt: str, agent_prompt: str) -> str:
+        """Generate a prompt for the user."""
+        return template.Template(raw_prompt, self.hass).async_render(
+            {
+                "ha_name": self.hass.config.location_name,
+                "exposed_areas": HaService(self.hass).get_all_exposed_areas(),
+                "agent_system_prompt": agent_prompt
+            },
+            parse_result=False,
+        )
+
+    def _async_generate_human_prompt(self, raw_prompt: str, agent_prompt: str) -> str:
+        """Generate a prompt for the user."""
+        return template.Template(raw_prompt, self.hass).async_render(
+            {
+                "agent_human_prompt": agent_prompt
+            },
+            parse_result=False,
+        )
 
     @property
     def supported_languages(self) -> list[str] | Literal["*"]:
@@ -135,10 +178,11 @@ class LLMConversationAssistAgent(conversation.AbstractConversationAgent):
     async def async_process(
             self, user_input: conversation.ConversationInput
     ) -> conversation.ConversationResult:
+        agent_chain = self._get_agent_chain()
 
         user_message = {"role": "user", "input": user_input.text}
         try:
-            response = await self.agent_chain.ainvoke(user_message)
+            response = await agent_chain.ainvoke(user_message)
         except HomeAssistantError as err:
             _LOGGER.error(err, exc_info=err)
             intent_response = intent.IntentResponse(language=user_input.language)
