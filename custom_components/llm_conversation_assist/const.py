@@ -11,13 +11,20 @@ CONF_SECRET_KEY = "secret_key"
 MODEL_TONGYI = "Tongyi"
 DEFAULT_TONGYI_CHAT_MODEL = "qwen-plus"
 
+MODEL_OPENAI = "OpenAI"
+DEFAULT_OPENAI_CHAT_MODEL = "gpt-3.5-turbo"
+
 MODEL_QIANFAN = "Qianfan"
 DEFAULT_QIANFAN_CHAT_MODEL = "ERNIE-Bot-turbo"
 
-# CONF_MAX_TOKENS = "max_tokens"
-# DEFAULT_MAX_TOKENS = 150
+CONF_BASE_URL = "base_url"
+DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1"
+
+CONF_MAX_TOKENS = "max_tokens"
+DEFAULT_OPENAI_MAX_TOKENS = 150
 
 CONF_TEMPERATURE = "temperature"
+DEFAULT_OPENAI_TEMPERATURE = 0.7
 DEFAULT_QIANFAN_TEMPERATURE = 0.5
 
 CONF_TOP_P = "top_p"
@@ -31,9 +38,24 @@ CONF_LANGCHAIN_MEMORY_WINDOW_SIZE = "langchain_memory_window_size"
 DEFAULT_LANGCHAIN_MEMORY_WINDOW_SIZE = 5
 
 CONF_SYSTEM_PROMPT = "system_prompt"
-DEFAULT_SYSTEM_PROMPT = """You are a personal home assistant who can help human users complete various life needs, including controlling the smart home at home through HomeAssistant. 
-You will make corrections or answers truthfully using information provided in one sentence in everyday language and in the language of the user.
-Respond to the human as helpfully and accurately as possible. You have access to the following tools:
+DEFAULT_SYSTEM_PROMPT = """This smart home is controlled by Home Assistant. 
+You are a helpful personal butler, if the user wants to control a device, try to use Home Assistant tools.
+
+An overview of the areas and the devices in this smart home:
+```csv
+area_id, area_name, area_aliases
+{% for area in exposed_areas %}
+{{ area['area_id'] }},{{ area['name'] }},{{ area['aliases'] | join('/')}}
+{% endfor %}
+```
+
+{{agent_system_prompt}}
+Do not execute service without user's confirmation.
+when you interact with HomeAssistant, DO NOT guess entity_id/device_id/area_id, you need to get the exact parameters.
+when encountering more complex control logic, you can first check whether there is a corresponding Script that can be executed directly.
+"""
+
+STRUCTURED_AGENT_SYSTEM_PROMPT = """You have access to the following tools:
 
 {tools}
 
@@ -70,12 +92,14 @@ Action:
 ```
 
 Begin! Reminder to ALWAYS respond with a valid json blob of a single action. Use tools if necessary. Respond directly if appropriate. Format is Action:```$JSON_BLOB```then Observation
-Do not execute service without user's confirmation.
-when you interact with HomeAssistant, DO NOT guess entity_id/device_id/area_id, you need to get the exact parameters.
-when encountering more complex control logic, you can first check whether there is a corresponding Script that can be executed directly.
 """
+OPENAI_AGENT_SYSTEM_PROMPT = ""
+
 CONF_HUMAN_PROMPT = "human_prompt"
 DEFAULT_HUMAN_PROMPT = """{input}
-{agent_scratchpad}
+{{agent_human_prompt}}
+"""
+STRUCTURED_AGENT_HUMAN_PROMPT = """{agent_scratchpad}
 (reminder to respond in a JSON blob no matter what)
 """
+OPENAI_AGENT_HUMAN_PROMPT = ""

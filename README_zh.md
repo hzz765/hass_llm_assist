@@ -20,7 +20,8 @@
   基于langchain的集成能力，该组件未来将可以支持多种大模型，包括本地部署的模型，这将避免用户对隐私的担忧。
 
 ## 当前支持的大模型
-- [**通义大模型**](https://tongyi.aliyun.com/)
+- **OpenAI**
+- [**通义大模型**](https://tongyi.aliyun.com/) （响应速度较慢）
 - [**百度千帆（文心一言）**](https://cloud.baidu.com/product/wenxinworkshop)
 
 ## 当前支持的Homeassistant能力

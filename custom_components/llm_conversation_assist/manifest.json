@@ -18,6 +18,7 @@
   "requirements": [
     "langchain>=0.1.0",
     "dashscope",
+    "langchain-openai>=0.0.3",
     "qianfan"
   ],
   "version": "0.0.1"

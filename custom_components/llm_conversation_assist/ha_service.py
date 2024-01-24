@@ -197,6 +197,7 @@ class HaService:
         exposed_entities = []
         for state in states:
             entity_id = state.entity_id
+            domain = state.domain
             entity_entry, device_entry, area_entry = self._get_registry_entries(entity_id)
 
             aliases = []
@@ -205,38 +206,94 @@ class HaService:
 
             area_id = ""
             area_name = "UNKNOWN"
+            area_aliases = []
             if area_entry:
                 area_id = area_entry.id
                 area_name = area_entry.name
+                area_aliases = area_entry.aliases
 
             exposed_entities.append(
                 {
                     "entity_id": entity_id,
+                    "domain": domain,
                     "name": state.name,
                     "state": self.hass.states.get(entity_id).state,
                     "aliases": aliases,
                     "area_id": area_id,
                     "area_name": area_name,
+                    "area_aliases": area_aliases
                 }
             )
         return exposed_entities
 
     @callback
-    def get_all_exposed_entities_csv(self):
-        _LOGGER.debug("Getting all exposed entities csv")
+    def get_all_exposed_areas(self):
         exposed_entities = self.get_all_exposed_entities()
         if len(exposed_entities) == 0:
             return ""
 
+        area_id_set = set()
+        areas = []
+        for exposed_entity in exposed_entities:
+            area_id = exposed_entity.get("area_id", "")
+            area_name = exposed_entity.get("area_name", "")
+            area_aliases = exposed_entity.get("area_aliases", [])
+            if (not isinstance(area_id, str) or area_id == "" or not isinstance(area_name, str) or area_name == "" or
+                    area_id in area_id_set):
+                continue
+            area_id_set.add(area_id)
+            areas.append({
+                "area_id": area_id,
+                "name": area_name,
+                "aliases": area_aliases
+            })
+
+        return areas
+
+    @callback
+    def get_exposed_entities_csv(self, area_id: str | None = None, domain: str | None = None):
+        _LOGGER.debug("Getting all exposed entities csv, area_id: %s, domain: %s", area_id, domain)
+        all_exposed_entities = self.get_all_exposed_entities()
+
+        need_fields = ["entity_id", "name", "aliases", "state"]
+        filter_funcs = []
+        if area_id is not None and area_id != "":
+            filter_funcs.append(lambda entity: entity["area_id"] == area_id)
+        else:
+            need_fields.append("area_name")
+
+        if domain is not None and domain != "":
+            filter_funcs.append(lambda entity: entity["domain"] == domain)
+        else:
+            need_fields.append("domain")
+
+        exposed_entities = []
+        for exposed_entity in all_exposed_entities:
+            is_exclude = False
+            for filter_func in filter_funcs:
+                if not filter_func(exposed_entity):
+                    is_exclude = True
+                    break
+            if is_exclude:
+                continue
+            exposed_entities.append(exposed_entity)
+        if len(exposed_entities) == 0:
+            return "No exposed entities"
+
         csv_data = io.StringIO()
         writer = csv.writer(csv_data)
-        field_names = list(exposed_entities[0].keys())
-        writer.writerow(field_names)
+        writer.writerow(need_fields)
 
-        for row in exposed_entities:
-            writer.writerow(row.values())
+        for exposed_entity in exposed_entities:
+            row = []
+            for field in need_fields:
+                row.append(exposed_entity[field])
+            writer.writerow(row)
 
-        return csv_data.getvalue()
+        return f"""```csv
+        {csv_data.getvalue()}
+        ```
+        """
 
     @callback
     def should_expose(self, entity_id: str) -> bool:
@@ -245,13 +302,15 @@ class HaService:
 
         return async_should_expose(self.hass, CONVERSATION_DOMAIN, entity_id)
 
-    async def add_automation(self, new_automation):
+    async def add_automation(self, new_automation=None):
         _LOGGER.debug("Adding automation: %s", new_automation)
+        if new_automation is None:
+            return "You need to pass in new automation as a param named new_automation"
         try:
             await async_validate_automation_config_item(self.hass, "", new_automation)
         except (vol.Invalid, HomeAssistantError) as err:
             _LOGGER.error(err)
-            return False
+            return f"new_automation malformed: {err}"
 
         async with self.mutation_lock:
             # load & update
@@ -279,12 +338,15 @@ class HaService:
             service_data = {}
 
         if "entity_id" in service_data:
-            valid_service_data = True
             entity_id = service_data["entity_id"]
-            if not self._is_valid_entity_id(entity_id):
-                return f"Unknown entity_id: {entity_id}, you should reacquire exposed entities"
-            if not self.should_expose(entity_id):
-                return f"Unexposed entity {entity_id}"
+            if not isinstance(entity_id, list):
+                entity_id = [entity_id]
+            for e_id in entity_id:
+                if not self._is_valid_entity_id(e_id):
+                    return f"Unknown entity_id: {e_id}, you should reacquire exposed entities, entity_id should be of string type and the format should conform to domain.unique_id, like lgiht.123"
+                if not self.should_expose(e_id):
+                    return f"Unexposed entity {e_id}"
+            valid_service_data = True
 
         if "area_id" in service_data:
             valid_service_data = True
@@ -299,7 +361,7 @@ class HaService:
                 return f"Unknown device_id: {device_id}, you should reacquire exposed entities"
 
         if not valid_service_data:
-            return f"Invalid service data: {service_data}"
+            return f"Invalid service data: {service_data}, must contain at least one of the following: area_id, device_id, entity_id."
 
         try:
             await self.hass.services.async_call(
@@ -318,13 +380,15 @@ class HaService:
         all_services = self.hass.services.async_services()
         return all_services.get(domain.lower(), {})
 
-    async def add_script(self, script_id, new_script):
+    async def add_script(self, script_id, new_script=None):
         _LOGGER.debug("Adding script: %s", new_script)
+        if new_script is None:
+            return "You need to pass in new script as a param named new_script"
         try:
             await async_validate_script_config_item(self.hass, script_id, new_script)
         except (vol.Invalid, HomeAssistantError) as err:
             _LOGGER.error(err)
-            return False
+            return f"new_script malformed: {err}"
 
         async with self.mutation_lock:
             # load & update
@@ -344,13 +408,28 @@ class HaService:
             current = {}
         return current
 
-    async def add_scene(self, new_scene):
-        _LOGGER.info(new_scene)
+    async def add_scene(self, name: str = "", entities: dict[str, Any] = None):
+        _LOGGER.debug("Adding scene, name: %s, entities: %s", name, entities)
+        if name is None or name == "":
+            return "You need to specify a name of the new scene"
+        if entities is None or len(entities) == 0:
+            return "You need to specify at least one entity in the new scene"
+
+        for entity_id in entities.keys():
+            if not self._is_valid_entity_id(entity_id):
+                return f"Unknown entity_id: {entity_id}, the key of entities should be entity_id, of string type and the format should conform to domain.unique_id, like lgiht.123"
+            if not self.should_expose(entity_id):
+                return f"Unexposed entity {entity_id}"
+
+        new_scene = {
+            "name": name,
+            "entities": entities
+        }
         try:
             SCENE_CONFIG_SCHEMA(new_scene)
         except (vol.Invalid, HomeAssistantError) as err:
             _LOGGER.error(err)
-            return str(err)
+            return f"new_scene malformed: {err}"
 
         entities = new_scene.get("entities", [])
         for entity_id in entities:

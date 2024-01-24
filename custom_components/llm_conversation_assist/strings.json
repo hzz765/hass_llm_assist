@@ -12,6 +12,13 @@
           "chat_model": "[%key:common::config_flow::data::chat_model%]"
         }
       },
+      "openai": {
+        "data": {
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "chat_model": "[%key:common::config_flow::data::chat_model%]",
+          "base_url": "[%key:common::config_flow::data::base_url%]"
+        }
+      },
       "qianfan": {
         "data": {
           "api_key": "[%key:common::config_flow::data::api_key%]",
@@ -39,6 +46,7 @@
           "human_prompt": "Human Prompt Template",
           "top_p": "Top P",
           "temperature": "Temperature",
+          "max_tokens": "Max Tokens",
           "langchain_max_iterations": "The maximum number of steps to take before ending the execution loop",
           "langchain_memory_window_size": "Number of messages to store in buffer"
         }
@@ -49,6 +57,7 @@
     "llm_model_class": {
       "options": {
         "Tongyi": "Tongyi",
+        "OpenAI": "OpenAI",
         "Qianfan":"Qianfan"
       }
     }
