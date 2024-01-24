@@ -53,3 +53,25 @@ With this component, users can engage in natural language conversations to contr
 2. Click on the conversation agent icon or open the conversation agent panel.
 3. Select your assistant by switching to  `<your assistant name>`
 4. Now start your conversation
+
+## Debug
+### [Get Debug Logs](https://www.home-assistant.io/integrations/logger)
+
+```yaml
+# configuration.yaml
+logger:
+  default: info
+  logs:
+    custom_components.llm_conversation_assist: debug
+```
+
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [⚙️ System](https://my.home-assistant.io/redirect/system_dashboard) > [✍️ Logs](https://my.home-assistant.io/redirect/logs)
+
+## Common issues
+### 1. Failed to install this component
+Most likely caused by the failure to install python dependency packages.
+- If the llm you want to use does not depend on this python package, you can just delete the corresponding package name in `manifest.json`.
+  - OpenAI -> `langchain-openai`
+  - Tongyi -> `dashscope`
+  - Qianfan -> `qianfan`
+- You can also manually install the corresponding dependencies via `pip install`

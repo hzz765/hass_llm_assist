@@ -9,13 +9,13 @@ CONF_CHAT_MODEL = "chat_model"
 CONF_SECRET_KEY = "secret_key"
 
 MODEL_TONGYI = "Tongyi"
-DEFAULT_TONGYI_CHAT_MODEL = "qwen-plus"
+DEFAULT_TONGYI_CHAT_MODEL = "qwen-max"
 
 MODEL_OPENAI = "OpenAI"
 DEFAULT_OPENAI_CHAT_MODEL = "gpt-3.5-turbo"
 
 MODEL_QIANFAN = "Qianfan"
-DEFAULT_QIANFAN_CHAT_MODEL = "ERNIE-Bot-turbo"
+DEFAULT_QIANFAN_CHAT_MODEL = "ERNIE-Bot-4"
 
 CONF_BASE_URL = "base_url"
 DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1"
@@ -25,7 +25,7 @@ DEFAULT_OPENAI_MAX_TOKENS = 150
 
 CONF_TEMPERATURE = "temperature"
 DEFAULT_OPENAI_TEMPERATURE = 0.7
-DEFAULT_QIANFAN_TEMPERATURE = 0.5
+DEFAULT_QIANFAN_TEMPERATURE = 0.8
 
 CONF_TOP_P = "top_p"
 DEFAULT_TONGYI_TOP_P = 0.8
@@ -41,7 +41,7 @@ CONF_SYSTEM_PROMPT = "system_prompt"
 DEFAULT_SYSTEM_PROMPT = """This smart home is controlled by Home Assistant. 
 You are a helpful personal butler, if the user wants to control a device, try to use Home Assistant tools.
 
-An overview of the areas and the devices in this smart home:
+An overview of the areas in this smart home:
 ```csv
 area_id, area_name, area_aliases
 {% for area in exposed_areas %}

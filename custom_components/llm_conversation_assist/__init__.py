@@ -152,12 +152,23 @@ class LLMConversationAssistAgent(conversation.AbstractConversationAgent):
             max_tokens=max_tokens
         )
 
+    def _get_qianfan_model(self):
+        from langchain_community.chat_models import QianfanChatEndpoint
+        ak = self.entry.data.get(CONF_API_KEY)
+        sk = self.entry.data.get(CONF_SECRET_KEY)
+        model_name = self.entry.data.get(CONF_CHAT_MODEL, DEFAULT_QIANFAN_CHAT_MODEL)
+        top_p = self.entry.options.get(CONF_TOP_P, DEFAULT_QIANFAN_TOP_P)
+        temperature = self.entry.options.get(CONF_TEMPERATURE, DEFAULT_QIANFAN_TEMPERATURE)
+        return QianfanChatEndpoint(qianfan_ak=ak, qianfan_sk=sk, model=model_name, top_p=top_p, temperature=temperature)
+
     def _async_generate_system_prompt(self, raw_prompt: str, agent_prompt: str) -> str:
         """Generate a prompt for the user."""
+        service = HaService(self.hass)
         return template.Template(raw_prompt, self.hass).async_render(
             {
                 "ha_name": self.hass.config.location_name,
-                "exposed_areas": HaService(self.hass).get_all_exposed_areas(),
+                "exposed_areas": service.get_all_exposed_areas(),
+                "exposed_entities": service.get_all_exposed_entities(),
                 "agent_system_prompt": agent_prompt
             },
             parse_result=False,
@@ -171,15 +182,6 @@ class LLMConversationAssistAgent(conversation.AbstractConversationAgent):
             },
             parse_result=False,
         )
-
-    def _get_qianfan_model(self):
-        from langchain_community.llms import QianfanLLMEndpoint
-        ak = self.entry.data.get(CONF_API_KEY)
-        sk = self.entry.data.get(CONF_SECRET_KEY)
-        model_name = self.entry.data.get(CONF_CHAT_MODEL, DEFAULT_QIANFAN_CHAT_MODEL)
-        top_p = self.entry.options.get(CONF_TOP_P, DEFAULT_QIANFAN_TOP_P)
-        temperature = self.entry.options.get(CONF_TEMPERATURE, DEFAULT_QIANFAN_TEMPERATURE)
-        return QianfanLLMEndpoint(qianfan_ak=ak, qianfan_sk=sk, model=model_name, top_p=top_p, temperature=temperature)
 
     @property
     def supported_languages(self) -> list[str] | Literal["*"]:

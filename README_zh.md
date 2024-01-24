@@ -79,3 +79,25 @@ https://github.com/hzz765/hass_llm_assist/assets/156523164/bd2cc717-cd9e-4a02-84
 
 https://github.com/hzz765/hass_llm_assist/assets/156523164/a82aac47-ad69-4b7d-85f3-a73e3d7eccf3
 
+## 调试
+### [获取调试日志](https://www.home-assistant.io/integrations/logger)
+
+```yaml
+# 修改 configuration.yaml (需重启)
+logger:
+  default: info
+  logs:
+    custom_components.llm_conversation_assist: debug
+```
+
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [⚙️ 系统](https://my.home-assistant.io/redirect/system_dashboard) > [✍️ 日志](https://my.home-assistant.io/redirect/logs)
+
+## 常见问题
+### 1. 安装/启动失败
+这很可能是由于无法安装 Python 依赖包导致的。
+
+- 如果要使用的 LLM 不依赖于此 Python 包，可以在 manifest.json 文件中删除相应的包名称。
+  - OpenAI -> `langchain-openai`
+  - 通义 -> `dashscope`
+  - 百度千帆 -> `qianfan`
+- 你还可以通过 `pip install` 命令手动安装相应的依赖项。
